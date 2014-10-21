@@ -1,0 +1,171 @@
+<#include "*/basic/default.html"/>
+
+<#macro title>
+	添加用户
+</#macro>
+
+<#macro head>
+	<script type="text/javascript">
+
+		$(document).ready(function(){
+			$("#selectAll").click(function(){
+				var checkbox = $(this),
+				children = checkbox.parents("table").find("tbody input[type='checkbox']");
+				
+				children.prop("checked",checkbox.is(":checked"));
+			});
+		});
+		
+	</script>
+</#macro>
+
+<#macro recursionTree parent>
+	<li>
+	
+		<@shiro.hasPermission name="group:read">
+		<a class="btn btn-default btn-sm" href="${base}/account/group/read?id=${parent.id}">
+			<span class="glyphicon glyphicon-edit"></span>
+		</a>
+		</@shiro.hasPermission>
+		<div class="node">
+			<label class="checkbox-inline"> 
+				<input type="checkbox" name="groupId" value="${parent.id}"> ${parent.name}
+			</label>
+		</div>
+		<#if parent.leaf>
+			<ul>
+				<#list parent.children as c>
+					<@recursionTree c />
+				</#list>
+			</ul>
+		</#if>
+		
+	</li>
+</#macro>
+
+<#macro body>
+	<div class="data-content">
+	
+	<ol class="breadcrumb">
+		<li><a href="${base}/account/user/view">用户管理</a></li>
+		<li class="active">添加用户</li>
+	</ol>
+	
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title"><span class="glyphicon glyphicon-user"></span> 用户管理</h3>
+		</div>
+		<form action="${base}/account/user/insert" id="create-user-form" method="post">
+			<div class="panel-body">
+			
+				<div class="form-group">
+		   			<div class="row">
+		    			<div class="col-xs-6">
+							<label for="username">登录帐号:</label>
+							<input type="text" class="form-control required" maxlength="32" minlength="6" id="username" remote="${base}/account/user/is-username-unique" name="username">
+						</div>
+						<div class="col-xs-6">
+							<label for="realname">真实姓名:</label>
+							<input type="text" class="form-control required" maxlength="64" id="realname" name="realname">
+						</div>
+		   			</div>
+	   			</div>
+		   			
+		   		<div class="form-group">
+		   			<div class="row">
+		    			<div class="col-xs-6">
+							<label for="password">登录密码:</label>
+							<input type="password" class="form-control required" maxlength="32" minlength="6" id="password" name="password">
+						</div>
+						<div class="col-xs-6">
+							<label for="confirmPassword">确认密码:</label>
+							<input type="password" class="form-control required" maxlength="32" minlength="6" equalTo="#password" id="confirmPassword" name="confirmPassword">
+						</div>
+		   			</div>
+	   			</div>
+		   			
+		   		<div class="form-group">
+		   			<div class="row">
+		    			<div class="col-xs-6">
+							<label for="state">用户状态:</label>
+							<select class="form-control required" name="state" id="state">
+								<option value="">请选择...</option>
+								<#list states as s>
+									<option value="${s.value}">${s.name}</option>
+								</#list>
+							</select>
+						</div>
+						<div class="col-xs-6">
+							<label for="email">电子邮件:</label>
+							<input type="text" class="form-control email" id="email" maxlength="128" name="email">
+						</div>
+		   			</div>
+	   			</div>
+	   			
+	   			
+				<div class="form-group">
+		   			<div class="row">
+		    			<div class="col-xs-12">
+							
+							<!-- 组表格 开始 -->
+							<div class="panel panel-default">
+							
+								<div class="panel-heading">
+									<h3 class="panel-title"><span class="glyphicon glyphicon-briefcase"></span> 用户所在组</h3>
+								</div>
+								<div class="panel-body">
+									<div class="tree" data-cascade="true">
+										
+										<div class="input-group">
+											<div class="input-group-btn">
+												<button type="button" class="btn btn-default" data-toggle="checkAll">
+													<span class="glyphicon glyphicon-check"></span>
+												</button>
+												<button type="button" class="btn btn-default" data-toggle="uncheckedAll">
+													<span class="glyphicon glyphicon glyphicon-unchecked"></span>
+												</button>
+												<button type="button" class="btn btn-default" data-toggle="expandAll">
+													<span class="glyphicon glyphicon-folder-open"></span>
+												</button>
+												
+												<button type="button" class="btn btn-default" data-toggle="collapseAll">
+													<span class="glyphicon glyphicon-folder-close"></span>
+												</button>
+											</div>
+											<input type="text" placeholder="输入关键字可以过滤不匹配的数据" data-toggle='filter' class="form-control">
+										</div>
+										
+										<#if groupsList??>
+									    <ul>
+									    	<#list groupsList as gl>
+												<@recursionTree gl/>
+											</#list>
+									    </ul>
+									    </#if>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel-footer">
+									
+				<button type="submit" class="btn btn-success">
+					<span class="glyphicon glyphicon-ok"></span> 保存
+				</button>
+				
+				<button type="reset" class="btn btn-warning">
+					<span class="glyphicon glyphicon-trash"></span> 重置
+				</button>
+				
+				<button type="button" class="btn btn-default" onclick="history.back();">
+					<span class="glyphicon glyphicon-backward"></span> 返回
+				</button>
+				
+			</div>
+		</form>
+		
+	</div>
+</#macro>
+

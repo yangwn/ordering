@@ -1,0 +1,185 @@
+<#include "*/basic/default.html"/>
+
+<#macro title>
+	编辑组${entity.name!''}
+</#macro>
+
+<#macro head>
+	<script type="text/javascript">
+
+		$(document).ready(function(){
+			$("#selectAll").click(function(){
+				var checkbox = $(this),
+				children = checkbox.parents("table").find("tbody input[type='checkbox']");
+				children.prop("checked",checkbox.is(":checked"));
+			});
+		});
+		
+	</script>
+</#macro>
+
+<#macro recursionTree parent resourcesList>
+	<li>
+		<@shiro.hasPermission name="group:read">
+		<a class="btn btn-default btn-sm" href="${base}/account/resource/read?id=${parent.id}">
+			<span class="glyphicon glyphicon-edit"></span>
+		</a>
+		</@shiro.hasPermission>
+		<div class="node">
+			<#if parent.icon??>
+			<span class="glyphicon ${parent.icon!''}"></span>
+			</#if>
+			<label class="checkbox-inline">
+				<#assign isSelected = false />
+               	<#list resourcesList as erl>
+               		<#if erl.id == parent.id>
+               			<#assign isSelected = true />
+               			<#break />
+               		</#if>
+               	</#list>
+				<input type="checkbox" name="resourceId" <#if isSelected>checked="true"</#if> value="${parent.id}"> ${parent.name}
+			</label>
+			<span>${parent.typeName}</span>
+			<span>${parent.remark!''}</span>
+		</div>
+		<#if parent.leaf>
+			<ul>
+				<#list parent.children as c>
+					<@recursionTree c resourcesList/>
+				</#list>
+			</ul>
+		</#if>
+	</li>
+</#macro>
+
+<#macro body>
+	<div class="data-content">
+	
+	<ol class="breadcrumb">
+		<li><a href="${base}/account/group/view">组管理</a></li>
+		<li class="active">编辑组</li>
+	</ol>
+	
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title"><span class="glyphicon glyphicon-briefcase"></span> 编辑组</h3>
+		</div>
+		<form action="${base}/account/group/save" id="save-group-form" method="post">
+		
+			<input type="hidden" name="id" value="${entity.id!''}">
+			<input type="hidden" name="type" value="03">
+			
+			<div class="panel-body">
+			
+				<div class="form-group">
+		   			<div class="row">
+		    			<div class="col-xs-6">
+							<label for="name">组名称:</label>
+							<input type="text" class="form-control required" maxlength="32" id="name" name="name" value="${entity.name!''}">
+						</div>
+						<div class="col-xs-6">
+							<label for="state">状态:</label>
+							<select class="form-control required" name="state" id="state">
+								<option value="">请选择...</option>
+				           		<#list states as s>
+					           		<option value="${s.value}" <#if entity.state?? && entity.state == s.readValue >selected="selected"</#if> >
+										${s.name}
+					                </option>
+				           		</#list>
+				           </select>
+						</div>
+		   			</div>
+	   			</div>
+	   			
+	   			<div class="form-group">
+		   			<div class="row">
+		    			<div class="col-xs-12">
+							<label for="parentId">所属父类:</label>
+							<select class="form-control" name="parentId" id="parentId">
+								<option value="">请选择...</option>
+				                <#list groupsList as gl>
+				                	<option value="${gl.id}" <#if entity.parentId==gl.id> selected="selected" </#if> >${gl.name}</option>
+				                </#list>
+				           </select>
+						</div>
+		   			</div>
+	   			</div>
+	   		
+				<div class="form-group">
+		   			<div class="row">
+		    			<div class="col-xs-12">
+							
+							<!-- 组表格 开始 -->
+							<div class="panel panel-default">
+							
+								<div class="panel-heading">
+									<h3 class="panel-title"><span class="glyphicon glyphicon-link"></span> 拥有资源</h3>
+								</div>
+								<div class="panel-body">
+									<div class="tree" data-cascade="true">
+										
+										<div class="input-group">
+											<div class="input-group-btn">
+												<button type="button" class="btn btn-default" data-toggle="checkAll">
+													<span class="glyphicon glyphicon-check"></span>
+												</button>
+												<button type="button" class="btn btn-default" data-toggle="uncheckedAll">
+													<span class="glyphicon glyphicon glyphicon-unchecked"></span>
+												</button>
+												<button type="button" class="btn btn-default" data-toggle="expandAll">
+													<span class="glyphicon glyphicon-folder-open"></span>
+												</button>
+												
+												<button type="button" class="btn btn-default" data-toggle="collapseAll">
+													<span class="glyphicon glyphicon-folder-close"></span>
+												</button>
+											</div>
+											<input type="text" placeholder="输入关键字可以过滤不匹配的数据" data-toggle='filter' class="form-control">
+										</div>
+										
+										<#if resourcesList??>
+									    <ul>
+									    	<#list resourcesList as rl>
+												<@recursionTree rl entity.resourcesList/>
+											</#list>
+									    </ul>
+									    </#if>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<div class="row">
+						<div class="col-xs-12">
+							<label for=""remark"">备注:</label>
+							<textarea rows="3" maxlength="512" class="form-control" name="remark" id=""remark"">${entity.remark!''}</textarea>
+						</div>
+					</div>
+				</div>
+
+			</div>
+			
+			<div class="panel-footer">
+									
+				<button type="submit" class="btn btn-success">
+					<span class="glyphicon glyphicon-ok"></span> 保存
+				</button>
+				
+				<button type="reset" class="btn btn-warning">
+					<span class="glyphicon glyphicon-trash"></span> 重置
+				</button>
+				
+				<button type="button" class="btn btn-default" onclick="history.back();">
+					<span class="glyphicon glyphicon-backward"></span> 返回
+				</button>
+				
+			</div>
+		</form>
+		
+	</div>
+</#macro>
+
+
